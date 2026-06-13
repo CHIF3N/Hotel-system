@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillBridge — Graduate Credential Platform</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #f5f5f5; }
+    ::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 3px; }
+    .card-hover { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+    .card-hover:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.09); transform: translateY(-1px); }
+    .btn-t { transition: all 0.15s ease; }
+    .nav-item { transition: background 0.12s ease; }
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .progress-bar { transition: width 0.6s ease; }
+  </style>
+</head>
+<body class="bg-white text-black">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ── ICONS ───────────────────────────────────────────────── */
+const Ico = ({ n, s = 20, cls = '' }) => {
+  const p = {
+    home:     "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+    grid:     "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z",
+    award:    "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+    brief:    "M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2",
+    user:     "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z",
+    gear:     "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z",
+    bell:     "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9",
+    upload:   "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12",
+    search:   "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z",
+    clock:    "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+    check:    "M5 13l4 4L19 7",
+    arrow:    "M13 7l5 5m0 0l-5 5m5-5H6",
+    plus:     "M12 4v16m8-8H4",
+    x:        "M6 18L18 6M6 6l12 12",
+    mark:     "M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z",
+    zap:      "M13 10V3L4 14h7v7l9-11h-7z",
+    out:      "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
+    shield:   "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    users:    "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+  };
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={cls}>
+      <path strokeLinecap="round" strokeLinejoin="round" d={p[n] || p.home} />
+    </svg>
+  );
+};
+
+/* ── LOGO ────────────────────────────────────────────────── */
+const Logo = ({ white = false, sm = false }) => (
+  <div className="flex items-center gap-2 cursor-pointer select-none">
+    <svg width={sm ? 28 : 36} height={sm ? 28 : 36} viewBox="0 0 48 48" fill="none">
+      <path d="M24 2L44 13.5V34.5L24 46L4 34.5V13.5L24 2Z" fill={white ? '#fff' : '#000'}/>
+      <path d="M24 11L37 32H11L24 11Z" fill={white ? '#000' : '#fff'}/>
+    </svg>
+    <span className={`font-bold tracking-tight ${sm ? 'text-sm' : 'text-base'} ${white ? 'text-white' : 'text-black'}`}>SkillBridge</span>
+  </div>
+);
+
+/* ── SHARED UI ───────────────────────────────────────────── */
+const Cls = ({ lvl, lg = false }) => {
+  const m = {
+    D: 'bg-white text-black border border-black',
+    C: 'bg-gray-200 text-gray-700',
+    B: 'bg-black text-white',
+    A: 'bg-black text-white border-l-2 border-amber-400',
+  };
+  return <span className={`inline-flex items-center font-bold tracking-widest uppercase rounded-sm text-xs px-2 py-0.5 ${m[lvl]} ${lg ? 'text-sm px-3 py-1' : ''}`}>{`CLASS ${lvl}`}</span>;
+};
+
+const Pill = ({ s }) => {
+  const m = {
+    'Completed':    'bg-green-100 text-green-800',
+    'Passed':       'bg-green-100 text-green-800',
+    'Failed':       'bg-red-100 text-red-800',
+    'Declined':     'bg-red-100 text-red-800',
+    'Pending':      'bg-amber-100 text-amber-800',
+    'Under Review': 'bg-yellow-100 text-yellow-800',
+    'In Progress':  'bg-gray-100 text-gray-800',
+    'Expired':      'bg-gray-100 text-gray-500',
+    'Open':         'bg-green-100 text-green-800',
+  };
+  const dot = {
+    'Completed':'bg-green-500','Passed':'bg-green-500','Failed':'bg-red-500','Declined':'bg-red-500',
+    'Pending':'bg-amber-500','Under Review':'bg-yellow-500','In Progress':'bg-black','Expired':'bg-gray-400','Open':'bg-green-500',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${m[s]||'bg-gray-100 text-gray-600'}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dot[s]||'bg-gray-400'}`}/>
+      {s}
+    </span>
+  );
+};
+
+const Btn = ({ children, v = 'primary', sz = 'md', onClick, disabled, cls = '' }) => {
+  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg btn-t cursor-pointer select-none';
+  const sizes = { sm: 'px-3 py-1.5 text-xs', md: 'px-4 py-2 text-sm', lg: 'px-6 py-3 text-base' };
+  const vs = {
+    primary:     'bg-black text-white hover:bg-gray-800 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed',
+    secondary:   'bg-white text-black border border-black hover:bg-gray-50 disabled:border-gray-200 disabled:text-gray-400',
+    ghost:       'bg-transparent text-black hover:bg-gray-100',
+    danger:      'bg-red-600 text-white hover:bg-red-700',
+    white:       'bg-white text-black hover:bg-gray-100',
+  };
+  return <button className={`${base} ${sizes[sz]} ${vs[v]} ${cls}`} onClick={onClick} disabled={!!disabled}>{children}</button>;
+};
+
+const Card = ({ children, cls = '', hover = false, onClick }) => (
+  <div className={`bg-white border border-gray-200 rounded-xl ${hover ? 'card-hover cursor-pointer' : ''} ${cls}`} onClick={onClick}>{children}</div>
+);
+
+const Av = ({ name, sz = 'md' }) => {
+  const s = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-16 h-16 text-xl' };
+  const ini = (name||'SB').split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  return <div className={`${s[sz]} rounded-full bg-black text-white flex items-center justify-center font-bold flex-shrink-0`}>{ini}</div>;
+};
+
+const Bar = ({ val, max = 100 }) => {
+  const pct = Math.min(100, Math.round((val/max)*100));
+  return <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-black h-2 rounded-full progress-bar" style={{width:`${pct}%`}}/></div>;
+};
+
+/* ── PUBLIC NAV ──────────────────────────────────────────── */
+const PubNav = ({ go }) => (
+  <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div onClick={()=>go('landing')}><Logo/></div>
+      <div className="hidden md:flex items-center gap-8 text-sm text-gray-500">
+        {['How It Works','For Graduates','For Employers','Pricing'].map(l=><button key={l} className="hover:text-black transition-colors">{l}</button>)}
+      </div>
+      <div className="flex gap-3">
+        <Btn v="ghost" onClick={()=>go('login')}>Log In</Btn>
+        <Btn onClick={()=>go('register')}>Get Started</Btn>
+      </div>
+    </div>
+  </nav>
+);
+
+/* ── APP SHELL ───────────────────────────────────────────── */
+const Shell = ({ children, go, page, user }) => {
+  const nav = [
+    { id:'dashboard',    label:'Dashboard',    icon:'home'  },
+    { id:'challenges',   label:'Challenges',   icon:'grid'  },
+    { id:'credentials',  label:'Credentials',  icon:'award' },
+    { id:'projects',     label:'Project Board',icon:'brief' },
+    { id:'profile',      label:'My Profile',   icon:'user'  },
+    { id:'settings',     label:'Settings',     icon:'gear'  },
+  ];
+  const titles = { dashboard:'Dashboard', challenges:'Challenges', credentials:'My Credentials', projects:'Project Board', profile:'My Profile', settings:'Settings', challenge_detail:'Challenge Detail', active_challenge:'Active Challenge' };
+  return (
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <aside className="hidden md:flex flex-col w-60 bg-white border-r border-gray-200 flex-shrink-0">
+        <div className="p-5 border-b border-gray-200"><Logo/></div>
+        <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+          <Av name={user.name} sz="sm"/>
+          <div className="min-w-0"><p className="text-sm font-semibold truncate">{user.name}</p><Cls lvl={user.cls}/></div>
+        </div>
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {nav.map(item=>(
+            <button key={item.id} onClick={()=>go(item.id)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium nav-item ${page===item.id?'bg-black text-white':'text-gray-600 hover:bg-gray-100 hover:text-black'}`}>
+              <Ico n={item.icon} s={18}/>{item.label}
+            </button>
+          ))}
+        </nav>
+        {!user.premium&&(
+          <div className="p-4 border-t border-gray-200">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <p className="text-xs font-bold text-amber-800">⭐ Go Premium</p>
+              <p className="text-xs text-amber-700 mt-0.5">Get discovered faster by employers</p>
+              <button className="mt-2 w-full bg-black text-white text-xs font-semibold py-1.5 rounded-lg">Upgrade — 1,500 XAF/mo</button>
+            </div>
+          </div>
+        )}
+        <div className="p-3 border-t border-gray-200">
+          <button onClick={()=>go('landing')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 hover:bg-gray-100 hover:text-red-600 nav-item">
+            <Ico n="out" s={18}/>Log Out
+          </button>
+        </div>
+      </aside>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+          <h1 className="text-lg font-semibold capitalize">{titles[page]||page}</h1>
+          <div className="flex items-center gap-3">
+            <button className="relative p-2 rounded-lg hover:bg-gray-100"><Ico n="bell" s={20}/><span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"/></button>
+            <button onClick={()=>go('profile')} className="p-1 rounded-lg hover:bg-gray-100"><Av name={user.name} sz="sm"/></button>
+          </div>
+        </header>
+        <main className="flex-1 overflow-y-auto p-6 fade-in">{children}</main>
+      </div>
+    </div>
+  );
+};
+
+/* ══ PAGES ══════════════════════════════════════════════════ */
+
+/* Landing */
+const Landing = ({ go }) => (
+  <div className="min-h-screen bg-white">
+    <section className="max-w-7xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16 items-center">
+      <div>
+        <span className="inline-flex bg-black text-white text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-md mb-6">Graduate Credential Platform</span>
+        <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">Prove Your Skills.<br/>Get Hired.</h1>
+        <p className="text-lg text-gray-500 leading-relaxed mb-8">SkillBridge connects Cameroonian graduates with verified credentials to employers who need real talent. No diploma guessing. Just proof.</p>
+        <div className="flex flex-wrap gap-3 mb-5">
+          <Btn sz="lg" onClick={()=>go('register')}>Start for Free →</Btn>
+          <Btn v="secondary" sz="lg" onClick={()=>go('employer_dash')}>I'm an Employer</Btn>
+        </div>
+        <p className="text-sm text-gray-400">Free for graduates · Verified credentials · Trusted by employers</p>
+      </div>
+      <div className="hidden md:block relative h-80">
+        <Card cls="absolute top-0 left-8 w-72 p-5 shadow-xl" style={{transform:'rotate(-3deg)'}}>
+          <div className="flex items-center gap-3 mb-3"><Av name="Thierry N"/><div><p className="font-semibold text-sm">Thierry Ngong</p><p className="text-xs text-gray-500">Computer Engineering</p></div></div>
+          <div className="flex gap-2 mb-3"><Cls lvl="A"/><span className="text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">Top 8%</span></div>
+          <Bar val={100}/>
+        </Card>
+        <Card cls="absolute top-24 right-0 w-64 p-4 shadow-xl" style={{transform:'rotate(2deg)'}}>
+          <div className="flex justify-between mb-2"><span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Badge Earned</span><Pill s="Completed"/></div>
+          <p className="font-semibold text-sm">SQL Database Design</p>
+          <div className="flex gap-2 mt-2"><Cls lvl="B"/><span className="text-xs text-gray-400">Score: 88/100</span></div>
+        </Card>
+        <Card cls="absolute bottom-0 left-4 w-64 p-4 shadow-xl">
+          <div className="flex justify-between mb-1"><span className="text-xs font-bold text-gray-400">FINANCE PROJECT</span><span className="font-mono text-sm font-bold text-green-600">75,000 XAF</span></div>
+          <p className="font-semibold text-sm">Monthly Financial Report Dashboard</p>
+          <div className="flex gap-2 mt-2"><Cls lvl="B"/><span className="text-xs text-gray-400">4 applicants</span></div>
+        </Card>
+      </div>
+    </section>
+
+    <section className="bg-gray-50 border-y border-gray-200">
+      <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 divide-x divide-gray-200">
+        {[['10,000+','Registered Graduates'],['320','Practice Challenges'],['4','Academic Fields'],['99.5%','Platform Uptime']].map(([n,l])=>(
+          <div key={l} className="text-center px-4"><p className="font-mono text-2xl font-bold">{n}</p><p className="text-xs text-gray-500 mt-1">{l}</p></div>
+        ))}
+      </div>
+    </section>
+
+    <section className="max-w-7xl mx-auto px-6 py-20">
+      <div className="text-center mb-12">
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">HOW IT WORKS</span>
+        <h2 className="text-3xl font-bold mt-3">Four classes. One path. Real proof.</h2>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[{c:'D',n:'Beginner',d:'Start here. Complete 5 challenges to progress.',r:'AI Reviewed'},{c:'C',n:'Intermediate',d:'4 challenges. Deeper domain knowledge required.',r:'AI Reviewed'},{c:'B',n:'Advanced',d:'Expert-reviewed. Complex multi-part deliverables.',r:'Expert Reviewed'},{c:'A',n:'Expert',d:'Access paid real-world projects from companies.',r:'Expert Reviewed'}].map(x=>(
+          <Card key={x.c} cls="p-5">
+            <Cls lvl={x.c}/><h3 className="font-semibold mt-3 mb-1">{x.n}</h3>
+            <p className="text-sm text-gray-500 mb-3">{x.d}</p>
+            <span className="text-xs text-gray-400 border-t border-gray-100 pt-3 block">{x.r}</span>
+          </Card>
+        ))}
+      </div>
+    </section>
+
+    <section className="bg-black">
+      <div className="max-w-3xl mx-auto px-6 py-20 text-center">
+        <h2 className="text-4xl font-bold text-white mb-4">Your credentials are waiting to be built.</h2>
+        <p className="text-gray-400 mb-8">Join thousands of graduates building verified proof of their skills across Cameroon.</p>
+        <div className="flex justify-center gap-3">
+          <Btn cls="!bg-white !text-black hover:!bg-gray-100" sz="lg" onClick={()=>go('register')}>Get Started Free</Btn>
+          <Btn v="ghost" cls="!text-white !border !border-gray-700 hover:!bg-gray-800" sz="lg" onClick={()=>go('login')}>Sign In</Btn>
+        </div>
+      </div>
+    </section>
+
+    <footer className="border-t border-gray-200 bg-white">
+      <div className="max-w-7xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+        <Logo/>
+        <div className="flex gap-8 text-sm text-gray-500">
+          {['How It Works','Pricing','Privacy','Terms','Contact'].map(l=><a key={l} href="#" className="hover:text-black">{l}</a>)}
+        </div>
+        <p className="text-sm text-gray-400">© 2026 SkillBridge · Cameroon</p>
+      </div>
+    </footer>
+  </div>
+);
+
+/* Login */
+const Login = ({ go }) => (
+  <div className="min-h-screen flex">
+    <div className="hidden lg:flex w-2/5 bg-black flex-col p-12">
+      <Logo white/>
+      <div className="flex-1 flex flex-col justify-center">
+        <p className="text-3xl font-semibold text-white italic leading-snug mb-8">"Every credential you've built is waiting for you."</p>
+        <Card cls="p-5 !bg-gray-900 !border-gray-700">
+          <div className="flex items-center gap-3 mb-3"><Av name="Thierry N"/><div><p className="text-white font-semibold text-sm">Thierry Ngong</p><p className="text-gray-400 text-xs">Computer Engineering</p></div></div>
+          <Cls lvl="A"/>
+          <div className="flex gap-2 mt-3">{['SQL Design','Data Structures','API Build'].map(b=><span key={b} className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded-md">{b}</span>)}</div>
+        </Card>
+      </div>
+      <div className="flex gap-8">{[['2,400+','Graduates'],['18','Employers'],['320','Challenges']].map(([n,l])=><div key={l}><p className="font-mono text-xl font-bold text-white">{n}</p><p className="text-xs text-gray-500">{l}</p></div>)}</div>
+    </div>
+    <div className="flex-1 flex items-center justify-center p-8 bg-white">
+      <div className="w-full max-w-md">
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">WELCOME BACK</span>
+        <h2 className="text-3xl font-bold mt-2 mb-2">Sign in to SkillBridge</h2>
+        <p className="text-gray-500 text-sm mb-8">Don't have an account? <button onClick={()=>go('register')} className="text-black font-semibold underline">Create one free →</button></p>
+        <div className="space-y-4">
+          <div><label className="text-sm font-medium block mb-1.5">Email address</label><input type="email" placeholder="you@example.com" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5"/></div>
+          <div><label className="text-sm font-medium block mb-1.5">Password</label><input type="password" placeholder="••••••••" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black focus:ring-2 focus:ring-black/5"/></div>
+          <div className="flex justify-between text-sm"><label className="flex gap-2 items-center text-gray-500 cursor-pointer"><input type="checkbox" className="rounded"/>Remember me</label><button className="underline text-black">Forgot password?</button></div>
+          <Btn cls="w-full" sz="lg" onClick={()=>go('dashboard')}>Sign In</Btn>
+          <div className="relative"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"/></div><div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-gray-400">or</span></div></div>
+          <Btn v="secondary" cls="w-full" onClick={()=>go('employer_dash')}>Sign in as Employer</Btn>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* Register */
+const Register = ({ go }) => {
+  const [step, setStep] = useState(1);
+  const [field, setField] = useState(null);
+  const fields = [
+    { id:'cs', icon:'grid',  name:'Computer Engineering',    desc:'Software, systems, algorithms' },
+    { id:'ee', icon:'zap',   name:'Electrical Engineering',  desc:'Electronics, power, signals' },
+    { id:'fi', icon:'award', name:'Finance',                 desc:'Analysis, modeling, accounting' },
+    { id:'mk', icon:'users', name:'Marketing & Content',     desc:'Strategy, campaigns, copy' },
+  ];
+  return (
+    <div className="min-h-screen flex">
+      <div className="hidden lg:flex w-2/5 bg-black flex-col p-12">
+        <Logo white/>
+        <div className="flex-1 flex flex-col justify-center">
+          <p className="text-3xl font-semibold text-white italic leading-snug mb-8">"Your journey to verified expertise starts now."</p>
+          <div className="space-y-3">{['Free to join — no credit card','Progress through 4 class levels','AI and expert-reviewed submissions','Verifiable digital badges on your profile'].map(f=>(
+            <div key={f} className="flex items-center gap-3"><div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0"><Ico n="check" s={12} cls="text-white"/></div><span className="text-gray-300 text-sm">{f}</span></div>
+          ))}</div>
+        </div>
+      </div>
+      <div className="flex-1 flex items-center justify-center p-8 bg-white">
+        <div className="w-full max-w-md">
+          <div className="flex items-center gap-2 mb-8">
+            {[1,2,3].map((s,i)=>(
+              <React.Fragment key={s}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${s<=step?'bg-black text-white':'bg-gray-200 text-gray-500'}`}>
+                  {s<step?<Ico n="check" s={14} cls="text-white"/>:s}
+                </div>
+                <span className="text-xs text-gray-500">{['Account','Profile','Field'][i]}</span>
+                {s<3&&<div className={`flex-1 h-0.5 ${s<step?'bg-black':'bg-gray-200'}`}/>}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {step===1&&<>
+            <h2 className="text-3xl font-bold mb-6">Create your account</h2>
+            <div className="space-y-4">
+              <div><label className="text-sm font-medium block mb-1.5">Full name</label><input type="text" placeholder="Thierry Ngong" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+              <div><label className="text-sm font-medium block mb-1.5">Email address</label><input type="email" placeholder="you@example.com" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+              <div><label className="text-sm font-medium block mb-1.5">Password <span className="text-gray-400 font-normal">(min 8 characters)</span></label><input type="password" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+              <label className="flex items-start gap-2 text-sm text-gray-500 cursor-pointer"><input type="checkbox" className="mt-0.5 rounded"/><span>I agree to the <a className="text-black underline">Terms of Service</a> and <a className="text-black underline">Privacy Policy</a></span></label>
+              <Btn cls="w-full" sz="lg" onClick={()=>setStep(2)}>Continue →</Btn>
+              <p className="text-center text-sm text-gray-500">Already have an account? <button onClick={()=>go('login')} className="text-black font-semibold underline">Sign in</button></p>
+            </div>
+          </>}
+
+          {step===2&&<>
+            <h2 className="text-3xl font-bold mb-6">Tell us about yourself</h2>
+            <div className="space-y-4">
+              <div><label className="text-sm font-medium block mb-1.5">Bio <span className="text-gray-400 font-normal">(optional, 300 words)</span></label><textarea className="w-full h-24 px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black resize-none" placeholder="A short bio about yourself..."/></div>
+              <div><label className="text-sm font-medium block mb-1.5">University</label><input type="text" placeholder="University of Buea" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+              <div><label className="text-sm font-medium block mb-1.5">Year of graduation</label><select className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black bg-white"><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select></div>
+              <div><label className="text-sm font-medium block mb-1.5">GitHub / Portfolio <span className="text-gray-400 font-normal">(optional)</span></label><input type="url" placeholder="https://github.com/username" className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+              <div className="flex gap-3"><Btn v="ghost" onClick={()=>setStep(1)}>← Back</Btn><Btn cls="flex-1" onClick={()=>setStep(3)}>Continue →</Btn></div>
+            </div>
+          </>}
+
+          {step===3&&<>
+            <h2 className="text-3xl font-bold mb-2">Choose your field</h2>
+            <p className="text-gray-500 text-sm mb-6">This determines which challenges you start with. You can explore others later.</p>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {fields.map(f=>(
+                <button key={f.id} onClick={()=>setField(f.id)} className={`p-4 rounded-xl border-2 text-left transition-all ${field===f.id?'bg-black text-white border-black':'bg-white text-black border-gray-200 hover:border-gray-400'}`}>
+                  <Ico n={f.icon} s={24} cls="mb-2"/>
+                  <p className="font-semibold text-sm">{f.name}</p>
+                  <p className={`text-xs mt-0.5 ${field===f.id?'text-gray-300':'text-gray-500'}`}>{f.desc}</p>
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-3"><Btn v="ghost" onClick={()=>setStep(2)}>← Back</Btn><Btn cls="flex-1" disabled={!field} onClick={()=>go('dashboard')}>Complete Registration →</Btn></div>
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* Graduate Dashboard */
+const Dashboard = ({ go, user }) => (
+  <div className="space-y-6 max-w-5xl fade-in">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card cls="p-5">
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Your Class</span>
+        <div className="mt-2 mb-2"><Cls lvl={user.cls} lg/></div>
+        <p className="text-sm text-gray-500 mb-2">1 more challenge to unlock Class A</p>
+        <Bar val={2} max={3}/><p className="text-xs text-gray-400 mt-1.5">2 of 3 Class B challenges done</p>
+      </Card>
+      <Card cls="p-5">
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Total Credentials</span>
+        <p className="font-mono text-5xl font-bold mt-2">14</p>
+        <p className="text-sm text-green-600 font-semibold mt-1">+2 this month</p>
+      </Card>
+      <Card cls="p-5">
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Your Rank</span>
+        <p className="font-mono text-4xl font-bold mt-2">Top 18%</p>
+        <p className="text-sm text-gray-500">in Computer Engineering</p>
+        <p className="text-xs text-green-600 font-semibold mt-1">↑ +4% this month</p>
+      </Card>
+    </div>
+
+    <div>
+      <div className="flex justify-between items-center mb-4"><h3 className="font-semibold text-lg">Active Challenges</h3><button onClick={()=>go('challenges')} className="text-sm text-black underline">View All →</button></div>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card cls="p-5" hover onClick={()=>go('active_challenge')}>
+          <div className="flex justify-between mb-3"><Cls lvl="B"/><Pill s="In Progress"/></div>
+          <h4 className="font-semibold mb-1">RESTful API Design & Implementation</h4>
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">Computer Engineering</span>
+          <div className="flex items-center gap-1.5 mt-3 text-amber-600"><Ico n="clock" s={14}/><span className="text-sm font-semibold">5h 20min remaining</span></div>
+          <Btn cls="w-full mt-3" sz="sm">Continue Challenge →</Btn>
+        </Card>
+        <Card cls="p-5 flex flex-col items-center justify-center text-center border-dashed" style={{minHeight:'160px'}}>
+          <Ico n="plus" s={24} cls="text-gray-300 mb-2"/>
+          <p className="text-sm text-gray-400 mb-2">Start another challenge</p>
+          <Btn v="ghost" sz="sm" onClick={()=>go('challenges')}>Browse Challenges</Btn>
+        </Card>
+      </div>
+    </div>
+
+    <Card cls="p-5">
+      <h3 className="font-semibold mb-4">Recent Activity</h3>
+      <div className="space-y-4">
+        {[
+          { ic:'award', bg:'bg-green-100 text-green-600', title:'Badge earned', desc:'Data Structures — Class C · Passed', t:'2 hours ago' },
+          { ic:'grid',  bg:'bg-black text-white',         title:'Challenge started', desc:'RESTful API Design — Class B', t:'1 day ago' },
+          { ic:'zap',   bg:'bg-amber-100 text-amber-600', title:'Class C unlocked!', desc:'You completed 5 Class D challenges', t:'3 days ago' },
+        ].map((a,i)=>(
+          <div key={i} className="flex items-start gap-3">
+            <div className={`w-8 h-8 rounded-full ${a.bg} flex items-center justify-center flex-shrink-0`}><Ico n={a.ic} s={14}/></div>
+            <div className="flex-1 min-w-0"><p className="text-sm font-semibold">{a.title}</p><p className="text-sm text-gray-500 truncate">{a.desc}</p></div>
+            <span className="text-xs text-gray-400 flex-shrink-0">{a.t}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+
+    <div className="bg-black rounded-xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div><h3 className="text-white font-bold text-lg">Class A graduates earn real money.</h3><p className="text-gray-400 text-sm mt-1">Paid projects from real companies. You're 1 challenge away.</p></div>
+      <Btn cls="!bg-white !text-black hover:!bg-gray-100 flex-shrink-0" onClick={()=>go('challenges')}>Finish the challenge →</Btn>
+    </div>
+  </div>
+);
+
+/* Challenges */
+const Challenges = ({ go }) => {
+  const list = [
+    { id:1, cls:'B', title:'RESTful API Design & Implementation', field:'Computer Engineering', dur:'6–8h', del:3, rev:'Expert', status:'in_progress' },
+    { id:2, cls:'B', title:'SQL Database Schema Design',           field:'Computer Engineering', dur:'4–6h', del:2, rev:'Expert', status:null },
+    { id:3, cls:'B', title:'React Component Architecture',         field:'Computer Engineering', dur:'5–7h', del:4, rev:'Expert', status:null },
+    { id:4, cls:'A', title:'Cloud Microservices Architecture',     field:'Computer Engineering', dur:'8–12h',del:5, rev:'Expert', status:null },
+    { id:5, cls:'C', title:'Python Data Analysis Fundamentals',    field:'Computer Engineering', dur:'3–4h', del:2, rev:'AI',     status:'completed' },
+    { id:6, cls:'C', title:'Network Security Basics',              field:'Computer Engineering', dur:'2–3h', del:3, rev:'AI',     status:'completed' },
+  ];
+  return (
+    <div className="max-w-5xl fade-in">
+      <div className="bg-black rounded-xl p-4 mb-6 flex items-center justify-between">
+        <div className="flex-1 mr-6"><p className="text-white text-sm font-medium mb-2">Class B progress — 2 of 3 challenges complete</p><div className="w-full bg-gray-700 rounded-full h-2"><div className="bg-white h-2 rounded-full" style={{width:'67%'}}/></div></div>
+        <div className="text-right flex-shrink-0"><p className="font-mono text-2xl font-bold text-white">1</p><p className="text-gray-400 text-xs">challenge left</p></div>
+      </div>
+      <div className="flex gap-6">
+        <aside className="hidden md:block w-52 flex-shrink-0">
+          <Card cls="p-4">
+            <div className="flex justify-between mb-4"><span className="font-semibold text-sm">Filters</span><button className="text-xs text-gray-400 underline">Clear</button></div>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Class Level</p>
+            {['D','C','B','A'].map(c=><label key={c} className="flex items-center gap-2 py-1 cursor-pointer"><input type="checkbox" defaultChecked={c==='B'} className="rounded"/><Cls lvl={c}/></label>)}
+            <div className="border-t border-gray-100 mt-3 pt-3">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Duration</p>
+              {['Under 2h','2–4h','4–8h','Over 8h'].map(d=><label key={d} className="flex items-center gap-2 py-1 cursor-pointer text-sm text-gray-600"><input type="radio" name="dur"/>{d}</label>)}
+            </div>
+          </Card>
+        </aside>
+        <div className="flex-1">
+          <div className="flex justify-between mb-4"><span className="text-sm text-gray-500">{list.length} challenges available</span><select className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none"><option>Recommended</option><option>Newest</option></select></div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {list.map(ch=>(
+              <Card key={ch.id} cls="p-5" hover onClick={()=>go('challenge_detail')}>
+                <div className="flex justify-between mb-3"><Cls lvl={ch.cls}/><span className={`text-xs font-bold px-2 py-0.5 rounded-md ${ch.rev==='AI'?'bg-gray-100 text-gray-600':'bg-black text-white'}`}>{ch.rev==='AI'?'AI REVIEWED':'EXPERT REVIEWED'}</span></div>
+                <h4 className="font-semibold text-sm mb-1 leading-snug">{ch.title}</h4>
+                <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{ch.field}</span>
+                {ch.status&&<div className="mt-2"><Pill s={ch.status==='in_progress'?'In Progress':'Completed'}/></div>}
+                <div className="flex gap-4 mt-3 text-xs text-gray-400 border-t border-gray-100 pt-3">
+                  <span className="flex items-center gap-1"><Ico n="clock" s={12}/>{ch.dur}</span>
+                  <span className="flex items-center gap-1"><Ico n="upload" s={12}/>{ch.del} deliverables</span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* Challenge Detail */
+const ChallengeDetail = ({ go }) => {
+  const [modal, setModal] = useState(false);
+  const [chk, setChk] = useState([false,false,false]);
+  return (
+    <div className="max-w-5xl fade-in">
+      <p className="text-sm text-gray-400 mb-4">Challenges / Computer Engineering / Class B</p>
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 space-y-5">
+          <div>
+            <div className="flex gap-2 mb-3"><Cls lvl="B"/><span className="text-xs font-bold px-2 py-0.5 rounded-md bg-black text-white">EXPERT REVIEWED</span></div>
+            <h1 className="text-3xl font-bold mb-2">RESTful API Design & Implementation</h1>
+            <div className="flex gap-3 text-sm text-gray-500"><span className="flex items-center gap-1"><Ico n="clock" s={14}/>6–8 hours</span><span>·</span><span>3 deliverables</span><span>·</span><span>Pass: 65/100</span></div>
+          </div>
+          <Card cls="p-5">
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-3">CHALLENGE BRIEF</span>
+            <div className="border-l-4 border-black pl-4 bg-gray-50 p-4 rounded-r-lg mb-4"><p className="text-sm text-gray-600 italic"><strong>TechVenture Cameroon</strong> is a fictional fast-growing B2B SaaS startup that needs a backend API for their client management system.</p></div>
+            <p className="text-sm text-gray-700 leading-relaxed">Design and implement a RESTful API handling CRUD operations for clients and projects, JWT authentication, input validation, REST conventions, and OpenAPI/Swagger documentation.</p>
+          </Card>
+          <Card cls="p-5">
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-3">WHAT YOU'LL SUBMIT</span>
+            <div className="space-y-3">
+              {[['GitHub Repository','Working API code + README'],['API Documentation','Swagger/OpenAPI YAML or JSON'],['Design Decisions (PDF)','Architecture choices, min 500 words']].map(([t,d],i)=>(
+                <div key={i} className="flex items-start gap-3"><span className="w-6 h-6 rounded-full bg-black text-white text-xs flex items-center justify-center flex-shrink-0 font-bold">{i+1}</span><div><p className="text-sm font-semibold">{t}</p><p className="text-xs text-gray-500">{d}</p></div></div>
+              ))}
+            </div>
+          </Card>
+        </div>
+        <div>
+          <Card cls="p-5 sticky top-6">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">CHALLENGE INFO</p>
+            <div className="space-y-2 text-sm mb-4">
+              {[['Duration','6–8 hours'],['Pass score','65/100'],['Review time','72 hours'],['Attempts','248']].map(([k,v])=>(
+                <div key={k} className="flex justify-between"><span className="text-gray-500">{k}</span><span className="font-medium">{v}</span></div>
+              ))}
+            </div>
+            <div className="border-t border-gray-200 pt-4 space-y-2">
+              <Btn cls="w-full" onClick={()=>setModal(true)}>Start This Challenge</Btn>
+              <button className="w-full text-sm text-gray-500 hover:text-black py-2 flex items-center justify-center gap-1.5"><Ico n="mark" s={14}/>Save for later</button>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {modal&&(
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card cls="w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4"><h3 className="text-lg font-bold">Ready to begin?</h3><button onClick={()=>setModal(false)} className="text-gray-400 hover:text-black"><Ico n="x" s={20}/></button></div>
+            <p className="font-semibold text-sm mb-4">RESTful API Design & Implementation · 6–8 hours · Class B</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4"><p className="text-sm text-amber-800">⚠ Once started, your timer runs continuously and cannot be paused.</p></div>
+            <div className="space-y-2 mb-6">{['I have 6–8 hours available','I have read the full challenge brief','I understand I cannot pause the timer'].map((label,i)=>(
+              <label key={i} className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={chk[i]} onChange={e=>{const n=[...chk];n[i]=e.target.checked;setChk(n);}} className="w-4 h-4 rounded"/><span className="text-sm text-gray-700">{label}</span></label>
+            ))}</div>
+            <div className="flex gap-3"><Btn v="ghost" onClick={()=>setModal(false)}>Cancel</Btn><Btn disabled={!chk.every(Boolean)} cls="flex-1" onClick={()=>{setModal(false);go('active_challenge');}}>Start Challenge →</Btn></div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Active Challenge */
+const ActiveChallenge = ({ go }) => {
+  const [files] = useState([{ name:'api_design.pdf', size:'1.2 MB' }]);
+  const [note, setNote] = useState('');
+  return (
+    <div className="h-full flex flex-col -m-6">
+      <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+        <div className="flex items-center gap-4"><button onClick={()=>go('challenges')} className="text-sm text-gray-400 hover:text-black">← Exit</button><Logo sm/><span className="text-sm font-semibold text-gray-600 hidden md:block">RESTful API Design & Implementation</span></div>
+        <div className="flex items-center gap-4">
+          <div className="text-center"><p className="font-mono text-xl font-bold text-amber-600">05:32:14</p><p className="text-xs text-gray-400">remaining</p></div>
+          <Btn sz="sm" onClick={()=>go('dashboard')}>Submit Work</Btn>
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden flex">
+        <div className="flex-1 overflow-y-auto p-6 border-r border-gray-200">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-4">CHALLENGE BRIEF</span>
+          <div className="border-l-4 border-black pl-4 bg-gray-50 p-4 rounded-r-lg mb-4"><p className="text-sm text-gray-600 italic"><strong>TechVenture Cameroon</strong> needs a backend API for their client management system.</p></div>
+          <p className="text-sm text-gray-700 leading-relaxed mb-6">Design and implement a RESTful API handling CRUD operations for clients and projects, implement JWT authentication, validate all inputs, and document using OpenAPI/Swagger.</p>
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-3">DELIVERABLES CHECKLIST</span>
+          {['GitHub Repository (working code + README)','API Documentation (Swagger YAML/JSON)','Design Decisions PDF (min 500 words)'].map((d,i)=>(
+            <label key={i} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 mb-1"><input type="checkbox" className="rounded"/><span className="text-sm text-gray-700">{d}</span></label>
+          ))}
+        </div>
+        <div className="w-80 flex-shrink-0 overflow-y-auto p-6">
+          <span className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-4">SUBMIT YOUR WORK</span>
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center mb-4 hover:border-gray-400 cursor-pointer">
+            <Ico n="upload" s={28} cls="text-gray-300 mx-auto mb-2"/>
+            <p className="text-sm font-medium text-gray-600">Drop files here</p>
+            <p className="text-xs text-gray-400 mt-1">PDF, DOCX, XLSX, PNG · Max 25 MB</p>
+          </div>
+          {files.map((f,i)=>(
+            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-2 border border-gray-200">
+              <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center"><span className="text-xs font-bold text-red-600">PDF</span></div>
+              <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{f.name}</p><p className="text-xs text-gray-400">{f.size}</p></div>
+              <Ico n="check" s={16} cls="text-green-600 flex-shrink-0"/>
+            </div>
+          ))}
+          <div className="mb-4"><label className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1.5">GitHub Repository URL</label><input type="url" placeholder="https://github.com/yourname/..." className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+          <div className="mb-4"><label className="text-xs font-bold uppercase tracking-widest text-gray-400 block mb-1.5">Your Approach <span className="text-gray-400 normal-case font-normal">(optional)</span></label><textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Describe your methodology... (100 words max)" className="w-full h-20 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black resize-none"/><p className="text-xs text-gray-400 text-right mt-0.5">{note.split(' ').filter(Boolean).length}/100</p></div>
+          <Btn cls="w-full" onClick={()=>go('dashboard')}>Submit Final Work →</Btn>
+          <p className="text-xs text-gray-400 text-center mt-2">Submissions are final</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* Credentials */
+const Credentials = ({ go }) => {
+  const [sel, setSel] = useState(null);
+  const badges = [
+    { id:1, title:'Data Structures Fundamentals', cls:'C', field:'Computer Engineering', score:84, date:'Jun 12, 2026', type:'practice' },
+    { id:2, title:'SQL Database Schema Design',    cls:'C', field:'Computer Engineering', score:91, date:'Jun 5, 2026',  type:'practice' },
+    { id:3, title:'Python Basics Challenge',        cls:'D', field:'Computer Engineering', score:78, date:'May 28, 2026',type:'practice' },
+    { id:4, title:'Monthly Financial Report',       cls:'B', field:'Finance',              score:88, date:'May 20, 2026',type:'project'  },
+    { id:5, title:'Network Security Fundamentals',  cls:'D', field:'Computer Engineering', score:72, date:'May 15, 2026',type:'practice' },
+    { id:6, title:'Algorithms & Complexity',         cls:'C', field:'Computer Engineering', score:86, date:'May 8, 2026', type:'practice' },
+  ];
+  return (
+    <div className="max-w-5xl fade-in">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-1">My Credentials</h2>
+        <p className="text-gray-500 text-sm">Every badge is verified proof of your skill. Share them freely.</p>
+        <div className="flex gap-6 mt-4 text-sm"><span><span className="font-mono font-bold text-black">14</span> <span className="text-gray-500">Total</span></span><span><span className="font-mono font-bold text-black">3</span> <span className="text-gray-500">Fields</span></span><span className="text-green-600 font-semibold">Top 18% in Computer Engineering</span></div>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {[{cls:'D',count:5,s:'done'},{cls:'C',count:5,s:'done'},{cls:'B',count:2,s:'active',v:2,m:3},{cls:'A',count:0,s:'locked'}].map(c=>(
+          <Card key={c.cls} cls={`p-4 ${c.s==='locked'?'opacity-50':''}`}>
+            <Cls lvl={c.cls}/><p className="font-mono text-2xl font-bold mt-2">{c.count}</p><p className="text-xs text-gray-500">badges</p>
+            {c.s==='active'&&<Bar val={c.v} max={c.m} className="mt-2"/>}
+            {c.s==='done'&&<p className="text-xs text-green-600 mt-1 font-semibold">✓ Completed</p>}
+            {c.s==='locked'&&<p className="text-xs text-gray-400 mt-1">🔒 Locked</p>}
+          </Card>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {badges.map(b=>(
+          <Card key={b.id} cls="overflow-hidden" hover onClick={()=>setSel(b)}>
+            <div className="h-2 bg-black"/>
+            <div className="p-4 text-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"><Ico n="award" s={24} cls="text-gray-600"/></div>
+              <h4 className="font-semibold text-sm mb-2 leading-snug">{b.title}</h4>
+              <Cls lvl={b.cls}/>
+              <span className="block text-xs font-bold uppercase tracking-widest text-gray-400 mt-2">{b.field}</span>
+              {b.type==='project'&&<span className="inline-block mt-2 text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">REAL PROJECT</span>}
+              <p className="font-mono text-sm text-gray-500 mt-2">Score: {b.score}/100</p>
+              <p className="text-xs text-gray-400 mt-1">{b.date}</p>
+            </div>
+            <div className="px-4 pb-4 flex gap-2">
+              <button className="flex-1 text-xs text-gray-500 hover:text-black py-1.5 border border-gray-200 rounded-lg font-semibold">Share</button>
+              <button className="flex-1 text-xs text-gray-500 hover:text-black py-1.5 border border-gray-200 rounded-lg font-semibold">Verify</button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {sel&&(
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card cls="w-full max-w-md overflow-hidden">
+            <div className="flex">
+              <div className="w-2/5 bg-black flex flex-col items-center justify-center p-6 gap-4">
+                <Ico n="award" s={56} cls="text-white"/><Logo sm white/>
+              </div>
+              <div className="flex-1 p-5">
+                <div className="flex justify-between items-start mb-3"><Cls lvl={sel.cls}/><button onClick={()=>setSel(null)} className="text-gray-400 hover:text-black"><Ico n="x" s={18}/></button></div>
+                <h3 className="font-bold text-base mb-2">{sel.title}</h3>
+                <p className="font-mono text-3xl font-bold mb-2">{sel.score}<span className="text-base text-gray-400">/100</span></p>
+                <Pill s="Completed"/>
+                <div className="mt-4 space-y-1.5 text-sm">
+                  {[['Field',sel.field],['Earned',sel.date],['Issued by','SkillBridge'],['Co-signed','University of Buea']].map(([k,v])=>(
+                    <div key={k} className="flex justify-between"><span className="text-gray-500">{k}</span><span className="font-medium text-right">{v}</span></div>
+                  ))}
+                </div>
+                <div className="mt-4 space-y-2">
+                  <Btn cls="w-full" sz="sm">Copy Verification Link</Btn>
+                  <Btn v="secondary" cls="w-full" sz="sm">Download Badge (PNG)</Btn>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* Projects Board */
+const Projects = ({ go }) => {
+  const projects = [
+    { title:'Monthly Sales Dashboard',   company:'FinTech Cameroon',   cls:'B', comp:'75,000 XAF',  days:12, field:'Finance',              apps:4  },
+    { title:'E-commerce Backend API',    company:'ShopConnect Ltd.',   cls:'A', comp:'150,000 XAF', days:8,  field:'Computer Engineering',  apps:7  },
+    { title:'Digital Marketing Strategy',company:'Brand Africa',       cls:'B', comp:'50,000 XAF',  days:20, field:'Marketing',             apps:2  },
+    { title:'Financial Modeling Report', company:'Invest Cameroon',    cls:'A', comp:'100,000 XAF', days:5,  field:'Finance',               apps:9  },
+  ];
+  return (
+    <div className="max-w-4xl fade-in">
+      <div className="bg-black rounded-xl p-5 mb-6">
+        <p className="text-white font-bold text-lg">You've unlocked the Paid Project Board.</p>
+        <p className="text-gray-400 text-sm mt-1">You're Class B. Real companies post real projects here. Apply and get paid.</p>
+      </div>
+      <div className="flex gap-3 mb-6">
+        <div className="relative flex-1"><Ico n="search" s={18} cls="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/><input type="text" placeholder="Search projects..." className="w-full h-10 pl-10 pr-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+        <select className="border border-gray-200 rounded-lg px-3 text-sm focus:outline-none bg-white"><option>All Fields</option><option>Finance</option><option>Computer Engineering</option></select>
+      </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        {projects.map((p,i)=>(
+          <Card key={i} cls="p-5" hover>
+            <div className="flex justify-between mb-2"><Cls lvl={p.cls}/><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.days<10?'bg-amber-100 text-amber-700':'bg-gray-100 text-gray-600'}`}>{p.days} days left</span></div>
+            <p className="text-xs text-gray-400 font-semibold mb-1">{p.company}</p>
+            <h4 className="font-semibold text-base mb-1">{p.title}</h4>
+            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{p.field}</span>
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+              <div><span className="font-mono font-bold text-green-600 text-lg">{p.comp}</span><p className="text-xs text-gray-400">{p.apps} applicants</p></div>
+              <Btn sz="sm">View Project →</Btn>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* Profile */
+const Profile = ({ go, user }) => (
+  <div className="max-w-4xl grid md:grid-cols-3 gap-6 fade-in">
+    <Card cls="p-5 h-fit">
+      <div className="text-center">
+        <Av name={user.name} sz="lg"/>
+        <h3 className="font-bold text-lg mt-3">{user.name}</h3>
+        <p className="text-gray-500 text-sm mt-0.5">Computer Engineering</p>
+        <div className="mt-2"><Cls lvl={user.cls} lg/></div>
+        <p className="text-sm text-green-600 font-semibold mt-2">Top 18% in Computer Engineering</p>
+        <div className="grid grid-cols-3 gap-2 mt-4 pt-4 border-t border-gray-100 text-center">
+          {[['14','Badges'],['1','Active'],['2','Projects']].map(([n,l])=>(
+            <div key={l}><p className="font-mono font-bold text-lg">{n}</p><p className="text-xs text-gray-400">{l}</p></div>
+          ))}
+        </div>
+        <p className="text-sm text-gray-500 mt-4 text-left">Final-year Software Engineering student at UB FET. Passionate about backend systems and data-driven applications.</p>
+        <div className="mt-4 space-y-2">
+          <Btn v="secondary" cls="w-full">Edit Profile</Btn>
+          <Btn v="ghost" cls="w-full">Share Public Profile</Btn>
+        </div>
+      </div>
+    </Card>
+    <div className="md:col-span-2">
+      <div className="flex gap-4 border-b border-gray-200 mb-5">
+        {['Badges & Credentials','Projects','Activity'].map((t,i)=>(
+          <button key={t} className={`pb-2.5 text-sm font-semibold ${i===0?'border-b-2 border-black text-black':'text-gray-400 hover:text-black'}`}>{t}</button>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {[['Data Structures','C'],['SQL Design','C'],['Python Basics','D'],['API Security','C'],['Network Basics','D'],['Algorithms','C']].map(([b,c])=>(
+          <Card key={b} cls="p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center"><Ico n="award" s={18} cls="text-gray-500"/></div>
+            <div><p className="text-sm font-semibold">{b}</p><Cls lvl={c}/></div>
+          </Card>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+/* Employer Dashboard */
+const EmployerDash = ({ go }) => {
+  const grads = [
+    { name:'Thierry Ngong',   field:'Computer Engineering', cls:'A', rank:'Top 8%',  creds:18, score:89 },
+    { name:'Chanceline Dione',field:'Finance',              cls:'B', rank:'Top 15%', creds:12, score:83 },
+    { name:'Josué Tiaya',     field:'Computer Engineering', cls:'A', rank:'Top 12%', creds:16, score:87 },
+    { name:'Sergio Ateh',     field:'Elec. Engineering',   cls:'B', rank:'Top 20%', creds:10, score:79 },
+    { name:'Bill Elong',      field:'Computer Engineering', cls:'B', rank:'Top 22%', creds:9,  score:77 },
+    { name:'Marie Claire N.', field:'Marketing',            cls:'A', rank:'Top 5%',  creds:21, score:92 },
+  ];
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Logo/>
+          <nav className="hidden md:flex items-center gap-6 text-sm"><span className="font-semibold">Dashboard</span>{['Search Talent','My Projects','Subscription'].map(l=><button key={l} className="text-gray-500 hover:text-black">{l}</button>)}</nav>
+          <div className="flex items-center gap-3"><Btn sz="sm">Post a Project</Btn><button onClick={()=>go('landing')} className="text-sm text-gray-500 hover:text-black">Log Out</button></div>
+        </div>
+      </header>
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[['Contacts Used','6 / 10','Standard plan'],['Active Projects','2','7 total applications'],['Shortlisted','14','graduates saved'],['Plan','Standard','Renews Jul 12']].map(([l,v,s])=>(
+            <Card key={l} cls="p-5"><p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">{l}</p><p className="font-mono text-2xl font-bold">{v}</p><p className="text-xs text-gray-500 mt-1">{s}</p></Card>
+          ))}
+        </div>
+        <div className="bg-black rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div><p className="text-white font-bold">Upgrade to Premium — Unlimited contacts & projects</p><p className="text-gray-400 text-sm">60,000 XAF/month · Sponsored challenges & WhatsApp manager</p></div>
+          <Btn cls="!bg-white !text-black hover:!bg-gray-100 flex-shrink-0">Upgrade →</Btn>
+        </div>
+        <div>
+          <div className="flex justify-between items-center mb-4"><h3 className="font-semibold text-lg">Search Talent Pool</h3><span className="text-sm text-gray-500">247 graduates available</span></div>
+          <div className="flex gap-3 mb-5">
+            <div className="relative flex-1"><Ico n="search" s={18} cls="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/><input type="text" placeholder="Search by skill, field, or name..." className="w-full h-11 pl-10 pr-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+            <select className="border border-gray-200 rounded-lg px-4 text-sm focus:outline-none bg-white"><option>All Fields</option><option>Computer Engineering</option><option>Finance</option></select>
+            <select className="border border-gray-200 rounded-lg px-4 text-sm focus:outline-none bg-white"><option>All Classes</option><option>Class A</option><option>Class B</option></select>
+            <Btn><Ico n="search" s={16}/>Search</Btn>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {grads.map((g,i)=>(
+              <Card key={i} cls="p-5" hover>
+                <div className="flex justify-between mb-3"><Cls lvl={g.cls}/><span className={`text-xs font-bold px-2 py-0.5 rounded-full ${i<2?'bg-green-100 text-green-700':'bg-gray-100 text-gray-600'}`}>{g.rank}</span></div>
+                <div className="flex items-center gap-3 mb-3"><Av name={g.name} sz="md"/><div><p className="font-semibold text-sm">{g.name}</p><p className="text-xs text-gray-500">{g.field}</p></div></div>
+                <div className="flex gap-3 text-xs text-gray-500 mb-4"><span><span className="font-mono font-bold text-black">{g.creds}</span> credentials</span><span><span className="font-mono font-bold text-black">{g.score}</span> avg score</span></div>
+                <div className="flex gap-2"><Btn v="secondary" sz="sm" cls="flex-1">View Profile</Btn><Btn sz="sm" cls="flex-1">Contact</Btn></div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══ APP ══════════════════════════════════════════════════ */
+const App = () => {
+  const [page, setPage] = useState('landing');
+  const user = { name:'Thierry Ngong', cls:'B', premium:false };
+  const go = p => { setPage(p); window.scrollTo(0,0); };
+
+  const publicPages = ['landing','login','register','employer_dash'];
+  if (page==='landing')     return <><PubNav go={go}/><Landing go={go}/></>;
+  if (page==='login')       return <Login go={go}/>;
+  if (page==='register')    return <Register go={go}/>;
+  if (page==='employer_dash') return <EmployerDash go={go}/>;
+
+  const pages = {
+    dashboard:        <Dashboard go={go} user={user}/>,
+    challenges:       <Challenges go={go}/>,
+    challenge_detail: <ChallengeDetail go={go}/>,
+    active_challenge: <ActiveChallenge go={go}/>,
+    credentials:      <Credentials go={go}/>,
+    projects:         <Projects go={go}/>,
+    profile:          <Profile go={go} user={user}/>,
+    settings: (
+      <div className="max-w-2xl fade-in">
+        <Card cls="p-6">
+          <h3 className="font-semibold text-lg mb-5">Account Settings</h3>
+          <div className="space-y-4">
+            {[['Full Name','Thierry Ngong','text'],['Email','thierry@example.com','email'],['University','University of Buea','text']].map(([l,v,t])=>(
+              <div key={l}><label className="text-sm font-medium block mb-1.5">{l}</label><input type={t} defaultValue={v} className="w-full h-11 px-4 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-black"/></div>
+            ))}
+            <div className="border-t border-gray-100 pt-4">
+              <h4 className="font-semibold text-sm mb-3">Email Notifications</h4>
+              {['Review outcomes','Badge earned','Class unlocked','New challenges','Platform announcements'].map(n=>(
+                <label key={n} className="flex items-center justify-between py-2 cursor-pointer border-b border-gray-50">
+                  <span className="text-sm text-gray-700">{n}</span><input type="checkbox" defaultChecked className="w-4 h-4 rounded"/>
+                </label>
+              ))}
+            </div>
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs font-bold uppercase tracking-widest text-red-500 mb-3">Danger Zone</p>
+              <Btn v="secondary" cls="!border-red-200 !text-red-600 hover:!bg-red-50">Deactivate Account</Btn>
+            </div>
+            <Btn cls="w-full">Save Changes</Btn>
+          </div>
+        </Card>
+      </div>
+    ),
+  };
+
+  return (
+    <Shell go={go} page={page} user={user}>
+      {pages[page] || pages.dashboard}
+    </Shell>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
